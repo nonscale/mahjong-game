@@ -163,16 +163,16 @@ class MahjongSolitaire {
      * 4. 반응형 리사이즈
      */
     /**
-     * 🧩 공학적 요구사항 충족 (최종형): 중단 컨테이너 기준 피팅
+     * 🧩 업계 표준: 고정 크기 보드 + CSS Transform 스켈링 (Zoom 전략)
      */
     updateBoardScale() {
         if (this.grid.length === 0) return;
 
-        // 1. 논리적 바운딩 박스 계산
+        // 1. 고정된 논리적 바운딩 박스 계산 (px 단위)
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         const rootStyles = getComputedStyle(document.documentElement);
-        const unitW = parseFloat(rootStyles.getPropertyValue('--tile-w-half')) || 32;
-        const unitH = parseFloat(rootStyles.getPropertyValue('--tile-h-half')) || 42;
+        const unitW = parseFloat(rootStyles.getPropertyValue('--tile-w-half')) || 40;
+        const unitH = parseFloat(rootStyles.getPropertyValue('--tile-h-half')) || 55;
 
         this.grid.forEach(tile => {
             if (tile.isMatched) return;
@@ -189,20 +189,20 @@ class MahjongSolitaire {
         const centerX = (minX + maxX) / 2;
         const centerY = (minY + maxY) / 2;
 
-        // 2. 중단 컨테이너(Main) 영역 추출
+        // 2. 중단 컨테이너(game-container) 영역 추출
         const container = document.getElementById('game-container');
-        const padding = 20; 
-        const availableWidth = container.clientWidth - (padding * 2);
-        const availableHeight = container.clientHeight - (padding * 2);
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
 
-        if (availableWidth <= 0 || availableHeight <= 0) return;
+        if (cw <= 0 || ch <= 0) return;
 
-        // 3. 스케일 팩터 계산 (Contain 전략)
-        const scale = Math.min(availableWidth / logicalWidth, availableHeight / logicalHeight, 1.5);
+        // 3. 스케일 비율 계산 (공식: Math.min(CW/BW, CH/BH) * 0.95)
+        const scale = Math.min(cw / logicalWidth, ch / logicalHeight) * 0.95;
         
-        // 4. 보드 위치 보정 (중앙 정렬) 및 스케일 적용
-        // Flexbox가 #board를 중앙에 두므로, #board 내부의 콘텐츠 center가 (0,0)에 오도록 shift
+        // 4. Transform 적용: 논리적 중앙점을 (0,0)으로 옮긴 후 스케일링
+        // 이 방식은 타일의 개별 좌표 로직을 건드리지 않고 전체 판을 줌 조절합니다.
         this.boardElement.style.transform = `scale(${scale}) translate(${-centerX}px, ${-centerY}px)`;
+        this.boardElement.style.transformOrigin = "center center";
     }
     
     getFaceHTML(data) {

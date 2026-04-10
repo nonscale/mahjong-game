@@ -8,19 +8,11 @@
     --accent-color: #f39c12;
     --accent-light: #f1c40f;
 
-    /* 타일 배치용 논리적 기준값 (Logical Units) */
-    --tile-w-half: 32px;
-    --tile-h-half: 42px;
-    --tile-z-x: 4px;
-    --tile-z-y: 6px;
-}
-
-/* PC/모바일 구분 없이 자바스크립트 스케일링 엔진이 제어하므로 미디어 쿼리 삭제 또는 최소화 */
-@media (min-width: 600px) {
-    :root {
-        --tile-w-half: 32px;
-        --tile-h-half: 42px;
-    }
+    /* 고정된 논리적 유닛 (px) */
+    --tile-w-half: 40px;
+    --tile-h-half: 55px;
+    --tile-z-x: 5px;
+    --tile-z-y: 8px;
 }
 
 body {
@@ -99,9 +91,9 @@ h1 {
 /* 프리미엄 입체 마작 패 (자동 반응형 꽉찬 크기 조절) */
 .tile {
     position: absolute;
-    /* 논리적 고정 크기 (자바스크립트 Scale Factor가 이를 화면에 맞게 키움) */
-    width: 64px; 
-    height: 86px; 
+    /* 고정된 물리적 크기 (자바스크립트 스케일링 엔진이 전체를 조절함) */
+    width: 80px; 
+    height: 110px; 
     cursor: pointer;
     transition: filter 0.2s, background 0.2s;
     user-select: none;
@@ -113,8 +105,8 @@ h1 {
     box-shadow: 
         -1px 1px 0px #fff,
         -2px 3px 0px #8395a7,
-        -3px 5px 0px #576574,
-        -4px 8px 12px rgba(0,0,0,0.4);
+        -4px 6px 0px #576574,
+        -0.5vw 1vw 1.2vw rgba(0,0,0,0.4);
         
     display: flex;
     justify-content: center;
@@ -156,15 +148,11 @@ h1 {
 }
 .mj-man .mj-num {
     color: #c0392b; 
-    font-size: 6vw;
+    font-size: 32px;
 }
 .mj-man .mj-char {
     color: #2c3e50;
-    font-size: 6vw;
-}
-
-@media (min-width: 600px) {
-    .mj-man .mj-num, .mj-man .mj-char { font-size: 1.5rem; }
+    font-size: 32px;
 }
 
 /* 통자(Pin) 디자인: 작은 동그라미들의 그리드 레이아웃 */
@@ -218,17 +206,12 @@ h1 {
 
 /* 자패/풍패(Wind/Dragon) 큰 글씨 */
 .mj-font {
-    font-size: 8vw;
+    font-size: 50px;
 }
 .dragon-red { color: #c0392b; }
 .dragon-green { color: #27ae60; }
-.dragon-blue { color: #2980b9; border: 0.4vw solid #2980b9; border-radius: 0.5vw; padding: 0 0.2vw; font-size: 6vw; }
+.dragon-blue { color: #2980b9; border: 3px solid #2980b9; border-radius: 4px; padding: 0 4px; font-size: 40px; }
 .wind-black { color: #2c3e50; }
-
-@media (min-width: 600px) {
-    .mj-font { font-size: 2.2rem; }
-    .dragon-blue { border-width: 2px; font-size: 1.8rem; }
-}
 
 /* 선택 및 가림 처리 */
 .tile.blocked {
