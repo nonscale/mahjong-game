@@ -36,28 +36,33 @@ class MahjongSolitaire {
         const container = document.getElementById('game-container');
         const board = this.boardElement;
         
-        // 보드의 실제 차지 범위 계산 (안전 마진 포함)
-        // 현재 좌표계에서 가장 멀리 있는 패의 위치를 기반으로 함
-        let minX = 0, maxX = 0, minY = 0, maxY = 0;
+        // 보드의 실제 차지 범위 및 기하학적 중심 계산
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         this.layout.forEach(([z, y, x]) => {
-            minX = Math.min(minX, x * 24 - 30);
-            maxX = Math.max(maxX, x * 24 + 30);
-            minY = Math.min(minY, y * 32 - 40);
-            maxY = Math.max(maxY, y * 32 + 40);
+            const tx = x * 24;
+            const ty = y * 32;
+            minX = Math.min(minX, tx - 30);
+            maxX = Math.max(maxX, tx + 30);
+            minY = Math.min(minY, ty - 40);
+            maxY = Math.max(maxY, ty + 40);
         });
 
         const contentWidth = maxX - minX;
         const contentHeight = maxY - minY;
         
+        // 중심점 오프셋 계산 (오른쪽 하단 쏠림 방지)
+        const offsetX = (minX + maxX) / 2;
+        const offsetY = (minY + maxY) / 2;
+        
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
         
-        // 화면 크기에 맞춘 배율 계산 (가로/세로 중 더 꽉 차는 쪽 기준)
         const scaleX = containerWidth / contentWidth;
         const scaleY = containerHeight / contentHeight;
         const scale = Math.min(scaleX, scaleY);
         
-        board.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        // 중심점 보정을 포함한 트랜스폼 적용
+        board.style.transform = `translate(calc(-50% - ${offsetX * scale}px), calc(-50% - ${offsetY * scale}px)) scale(${scale})`;
     }
 
     // 1. 거북이 레이아웃 (더욱 축소)
