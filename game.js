@@ -1,321 +1,350 @@
-/**
- * 효도 마작 (사천성) 게임 로직
- * 어머님을 위해 직관적이고 부드러운 UI와 가이드를 제공합니다.
- */
-
-class MahjongGame {
+class MahjongSolitaire {
     constructor() {
         this.boardElement = document.getElementById('board');
         this.remainingElement = document.getElementById('remaining-count');
         this.timerElement = document.getElementById('timer');
-        this.overlay = document.getElementById('overlay');
         
-        // 마작 패 (유니코드 활용 또는 간단한 텍스트)
-        this.tiles = [
-            '🀀', '🀁', '🀂', '🀃', '🀄', '🀅', '🀆', 
-            '🀇', '🀈', '🀉', '🀊', '🀋', '🀌', '🀍', '🀎', '🀏', 
-            '🀐', '🀑', '🀒', '🀓', '🀔', '🀕', '🀖', '🀗', '🀘',
-            '🀙', '🀚', '🀛', '🀜', '🀝', '🀞', '🀟', '🀠', '🀡'
-        ];
+        // 브라우저 렌더링 무손실 마작 아트웍 데이터
+        this.tiles = [];
         
-        this.cols = 6; // 모바일 가로폭 고려
-        this.rows = 8;
+        // 1. 만자 (1~9)
+        const hanjas = ['一','二','三','四','五','六','七','八','九'];
+        for(let i=0; i<9; i++) this.tiles.push({ type: 'man', val: hanjas[i], num: i+1 });
+        
+        // 2. 통자 (1~9)
+        for(let i=1; i<=9; i++) this.tiles.push({ type: 'pin', val: i });
+        
+        // 3. 삭자 (1~9)
+        for(let i=1; i<=9; i++) this.tiles.push({ type: 'sou', val: i });
+        
+        // 4. 풍패/자패
+        const winds = ['東','南','西','北'];
+        const dragons = ['中','發','白'];
+        winds.forEach(w => this.tiles.push({ type: 'wind', val: w }));
+        dragons.forEach(d => this.tiles.push({ type: 'dragon', val: d }));
+        
         this.grid = [];
         this.selectedTile = null;
         this.timer = 0;
-        this.timerId = null;
         this.isProcessing = false;
 
         this.init();
     }
 
+    // 1. 거북이 레이아웃 (축소 조정)
+    getMobileTurtleLayout() {
+        let coords = [];
+        for (let y = -4; y <= 4; y += 2) {
+            for (let x = -8; x <= 8; x += 2) {
+                if (Math.abs(x) + Math.abs(y) <= 10) coords.push([0, y, x]);
+            }
+        }
+        for (let y = -2; y <= 2; y += 2) {
+            for (let x = -4; x <= 4; x += 2) {
+                if (Math.abs(x) + Math.abs(y) <= 4) coords.push([1, y, x]);
+            }
+        }
+        coords.push([2, 0, 0]);
+        return coords;
+    }
+
+    // 2. 피라미드 레이아웃 (축소 조정)
+    getPyramidLayout() {
+        let coords = [];
+        for (let z = 0; z < 4; z++) {
+            let size = 6 - z * 2;
+            if (size < 0) break;
+            for (let y = -size; y <= size; y += 2) {
+                for (let x = -size; x <= size; x += 2) {
+                    coords.push([z, y, x]);
+                }
+            }
+        }
+        return coords;
+    }
+
+    // 3. 아레나 레이아웃 (축소 조정)
+    getArenaLayout() {
+        let coords = [];
+        for (let y = -4; y <= 4; y += 2) {
+            for (let x = -6; x <= 6; x += 2) {
+                coords.push([0, y, x]);
+            }
+        }
+        for (let z = 1; z < 3; z++) {
+            for (let y = -4; y <= 4; y += 2) {
+                for (let x = -6; x <= 6; x += 2) {
+                    if (Math.abs(x) === 6 || Math.abs(y) === 4) {
+                        coords.push([z, y, x]);
+                    }
+                }
+            }
+        }
+        return coords;
+    }
+
+    // 4. 십자형 레이아웃 (Cross - 축소 조정)
+    getCrossLayout() {
+        let coords = [];
+        for (let z = 0; z < 3; z++) {
+            let size = 8 - z * 2;
+            for (let i = -size; i <= size; i += 2) {
+                coords.push([z, 0, i]); 
+                if (i !== 0) coords.push([z, i, 0]); 
+            }
+        }
+        return coords;
+    }
+
+    // 5. 다이아몬드 레이아웃 (축소 조정)
+    getDiamondLayout() {
+        let coords = [];
+        for (let z = 0; z < 2; z++) {
+            let size = 8 - z * 2;
+            for (let y = -size; y <= size; y += 2) {
+                for (let x = -size; x <= size; x += 2) {
+                    if (Math.abs(x) + Math.abs(y) <= size) {
+                        coords.push([z, y, x]);
+                    }
+                }
+            }
+        }
+        return coords;
+    }
+
     init() {
-        this.setupEventListeners();
+        document.getElementById('reset-btn').onclick = () => this.startNewGame();
+        document.getElementById('shuffle-btn').onclick = () => this.shuffleBoard();
         this.startNewGame();
     }
 
-    setupEventListeners() {
-        document.getElementById('reset-btn').addEventListener('click', () => this.startNewGame());
-        document.getElementById('restart-btn').addEventListener('click', () => this.startNewGame());
-        document.getElementById('shuffle-btn').addEventListener('click', () => this.shuffleBoard());
-        document.getElementById('hint-btn').addEventListener('click', () => this.showHint());
-    }
-
     startNewGame() {
-        this.overlay.classList.add('hidden');
-        this.stopTimer();
         this.timer = 0;
-        this.updateTimerDisplay();
-        this.isProcessing = false;
         this.selectedTile = null;
-        
-        this.generateBoard();
-        this.startTimer();
-    }
+        this.boardElement.innerHTML = '';
+        this.grid = [];
 
-    generateBoard() {
-        const totalTiles = this.rows * this.cols;
+        const layouts = [
+            this.getMobileTurtleLayout(),
+            this.getPyramidLayout(),
+            this.getArenaLayout(),
+            this.getCrossLayout(),
+            this.getDiamondLayout()
+        ];
+        this.layout = layouts[Math.floor(Math.random() * layouts.length)];
+        
+        if (this.layout.length % 2 !== 0) this.layout.pop();
+        
         let pool = [];
-        
-        // 패의 쌍을 만듭니다 (각 패는 2개 또는 4개씩)
-        const tileTypesCount = Math.floor(totalTiles / 4);
-        for (let i = 0; i < tileTypesCount; i++) {
-            const tile = this.tiles[i % this.tiles.length];
-            pool.push(tile, tile, tile, tile);
+        const numTiles = this.layout.length;
+        for (let i = 0; i < numTiles / 2; i++) {
+            const t = this.tiles[i % this.tiles.length];
+            pool.push(t, t);
         }
-        
-        // 남은 공간 채우기
-        while (pool.length < totalTiles) {
-            const tile = this.tiles[Math.floor(Math.random() * this.tiles.length)];
-            pool.push(tile, tile);
-        }
-
-        // 섞기
         this.shuffle(pool);
 
-        // 그리드 생성
-        this.grid = [];
-        this.boardElement.innerHTML = '';
-        this.boardElement.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
+        this.layout.forEach((pos, i) => {
+            const [z, y, x] = pos;
+            const tileData = pool[i];
+            const tile = this.createTile(x, y, z, tileData);
+            this.grid.push(tile);
+            this.boardElement.appendChild(tile.element);
+        });
 
-        for (let r = 0; r < this.rows; r++) {
-            this.grid[r] = [];
-            for (let c = 0; c < this.cols; c++) {
-                const value = pool.pop();
-                const tileObj = {
-                    r, c,
-                    value,
-                    element: this.createTileElement(r, c, value),
-                    isMatched: false
-                };
-                this.grid[r][c] = tileObj;
-                this.boardElement.appendChild(tileObj.element);
-            }
+        this.updateState();
+    }
+    
+    getFaceHTML(data) {
+        if (data.type === 'man') {
+            return `<div class="face"><div class="mj-man"><span class="mj-num">${data.val}</span><span class="mj-char">萬</span></div></div>`;
         }
-        
-        this.updateRemainingCount();
+        if (data.type === 'pin') {
+            let dots = '';
+            for(let i=0; i<data.val; i++) {
+                // 특정 숫자 색상 분리
+                let clr = (data.val===1 || (data.val===7 && i>3) || (data.val===9 && i>5) ? 'red' : (data.val===8 && i%2===1 ? 'green' : ''));
+                dots += `<div class="dot ${clr}"></div>`;
+            }
+            return `<div class="face"><div class="mj-pin layout-${data.val}">${dots}</div></div>`;
+        }
+        if (data.type === 'sou') {
+            if (data.val === 1) return `<div class="face"><div class="mj-sou layout-1">🦚</div></div>`;
+            let sticks = '';
+            for(let i=0; i<data.val; i++) {
+                let clr = (data.val===8 && i<4) || (data.val===6 && i<3) ? 'red' : 'green';
+                sticks += `<div class="stick ${clr}"></div>`;
+            }
+            return `<div class="face"><div class="mj-sou layout-${data.val}">${sticks}</div></div>`;
+        }
+        if (data.type === 'wind') {
+            return `<div class="face"><div class="mj-font wind-black">${data.val}</div></div>`;
+        }
+        if (data.type === 'dragon') {
+            let cls = data.val === '中' ? 'dragon-red' : (data.val === '發' ? 'dragon-green' : 'dragon-blue');
+            return `<div class="face"><div class="mj-font ${cls}">${data.val==='白'?'B':data.val}</div></div>`;
+        }
     }
 
-    createTileElement(r, c, value) {
-        const div = document.createElement('div');
-        div.className = 'tile';
-        div.textContent = value;
-        div.dataset.r = r;
-        div.dataset.c = c;
-        div.addEventListener('click', (e) => this.handleTileClick(r, c));
-        return div;
+    createTile(x, y, z, tileData) {
+        const el = document.createElement('div');
+        el.className = 'tile';
+        
+        // 보드 중앙점(50%, 50%)을 기준으로 일정한 픽셀 간격 배치
+        // 타일의 기본 크기가 대략 48x66이고 1단위가 그 절반에 해당하도록 구현
+        const xOffset = x * 25; // x 좌표당 25px
+        const yOffset = y * 34; // y 좌표당 34px
+        
+        el.style.left = `50%`; 
+        el.style.top = `50%`; 
+        el.style.zIndex = z * 10 + 100;
+        
+        // x, y 위치 기반 + z 높이 오프셋(두께감)을 통합하여 계산
+        el.style.transform = `translate(calc(-50% + ${xOffset}px - ${z * 4}px), calc(-50% + ${yOffset}px - ${z * 6}px))`;
+
+        el.innerHTML = this.getFaceHTML(tileData);
+        
+        // 타일 클릭 시 들썩임 방지를 위해 트랜스폼 값을 저장해 둡니다.
+        el.dataset.baseTransform = el.style.transform;
+        
+        const tile = { x, y, z, value: JSON.stringify(tileData), data: tileData, element: el, isMatched: false };
+        el.onclick = () => this.handleTileClick(tile);
+        
+        return tile;
     }
 
-    handleTileClick(r, c) {
-        if (this.isProcessing) return;
+    handleTileClick(tile) {
+        if (this.isProcessing || tile.isMatched) return;
         
-        const clickedTile = this.grid[r][c];
-        if (clickedTile.isMatched) return;
+        if (this.isBlocked(tile)) {
+            // 막힌 패는 클릭해도 제자리에 있게 하되 에러 피드백을 색상으로만 줍니다
+            tile.element.style.filter = "brightness(0.3) sepia(1)";
+            setTimeout(() => {
+                tile.element.style.filter = "";
+            }, 150);
+            return;
+        }
 
-        // 같은 패를 다시 클릭하면 선택 해제
-        if (this.selectedTile === clickedTile) {
-            clickedTile.element.classList.remove('selected');
+        if (this.selectedTile === tile) {
+            tile.element.classList.remove('selected');
             this.selectedTile = null;
             return;
         }
 
         if (!this.selectedTile) {
-            // 첫 번째 패 선택
-            this.selectedTile = clickedTile;
-            clickedTile.element.classList.add('selected');
+            this.selectedTile = tile;
+            tile.element.classList.add('selected');
         } else {
-            // 두 번째 패 선택
-            const firstTile = this.selectedTile;
-            
-            if (firstTile.value === clickedTile.value) {
-                // 패가 같으면 연결 가능한지 확인
-                const path = this.findPath(firstTile, clickedTile);
-                if (path) {
-                    this.matchTiles(firstTile, clickedTile, path);
-                } else {
-                    this.mismatchTiles(firstTile, clickedTile);
-                }
+            if (this.selectedTile.value === tile.value) {
+                this.matchTiles(this.selectedTile, tile);
             } else {
-                this.mismatchTiles(firstTile, clickedTile);
+                this.selectedTile.element.classList.remove('selected');
+                this.selectedTile = tile;
+                tile.element.classList.add('selected');
             }
         }
     }
 
-    matchTiles(tile1, tile2, path) {
-        this.isProcessing = true;
-        tile1.element.classList.add('selected');
-        tile2.element.classList.add('selected');
+    isBlocked(tile) {
+        const isOverlapping = (t1, t2) => {
+            return Math.abs(t1.x - t2.x) < 2 && Math.abs(t1.y - t2.y) < 2;
+        };
 
-        // 매칭 성공 시각 효과 (선 그리기 등은 복잡하므로 간단한 효과만)
+        const hasTop = this.grid.some(other => 
+            !other.isMatched && other.z > tile.z && isOverlapping(tile, other)
+        );
+        if (hasTop) return true;
+
+        const hasLeft = this.grid.some(other => 
+            !other.isMatched && other.z === tile.z && 
+            other.x < tile.x && (other.x + 2 > tile.x - 0.1) && Math.abs(other.y - tile.y) < 2
+        );
+        
+        const hasRight = this.grid.some(other => 
+            !other.isMatched && other.z === tile.z && 
+            other.x > tile.x && (tile.x + 2 > other.x - 0.1) && Math.abs(other.y - tile.y) < 2
+        );
+
+        return hasLeft && hasRight;
+    }
+
+    matchTiles(t1, t2) {
+        this.isProcessing = true;
+        t1.element.classList.add('matched');
+        t2.element.classList.add('matched');
+        t1.isMatched = true;
+        t2.isMatched = true;
+
         setTimeout(() => {
-            tile1.isMatched = true;
-            tile2.isMatched = true;
-            tile1.element.classList.add('matched');
-            tile2.element.classList.add('matched');
-            
             this.selectedTile = null;
             this.isProcessing = false;
-            this.updateRemainingCount();
-            this.checkGameWin();
+            this.updateState();
         }, 300);
     }
 
-    mismatchTiles(tile1, tile2) {
-        this.isProcessing = true;
-        tile2.element.classList.add('selected');
-        
-        setTimeout(() => {
-            tile1.element.classList.remove('selected');
-            tile2.element.classList.remove('selected');
-            this.selectedTile = null;
-            this.isProcessing = false;
-        }, 400);
-    }
-
-    // 사천성 경로 탐색 로직 (단순화를 위해 일단 인접하거나 빈 공간을 통한 2번 꺾임까지 허용하는 로직)
-    // 여기서는 어머님을 위해 '가로/세로 어느 방향이든 빈 공간이 있으면 가능'하게 하거나 
-    // 정석 사천성 로직을 구현합니다.
-    findPath(t1, t2) {
-        // 사천성 알고리즘: BFS로 최단 경로를 찾되 굴절 횟수가 2회 이하인 경로가 있는지 확인
-        // 어머님 게임이므로 보드 외곽으로도 돌아갈 수 있게 보드를 상하좌우 +1씩 확장해서 생각함
-        const rows = this.rows;
-        const cols = this.cols;
-        
-        // 경로 찾기를 위한 임시 맵 (0: 빈 공간, 1: 막힘, 2: 목표)
-        // 보드 외곽(가상의 공간)을 포함하기 위해 범위를 -1 ~ rows, -1 ~ cols로 잡음
-        const queue = [{ r: t1.r, c: t1.c, dir: -1, turns: 0 }];
-        const visited = new Map();
-
-        while (queue.length > 0) {
-            const curr = queue.shift();
-            
-            if (curr.turns > 2) continue;
-            
-            const directions = [
-                { r: -1, c: 0 }, { r: 1, c: 0 },
-                { r: 0, c: -1 }, { r: 0, c: 1 }
-            ];
-
-            for (let i = 0; i < directions.length; i++) {
-                let nr = curr.r + directions[i].r;
-                let nc = curr.c + directions[i].c;
-                
-                // 보드 경계 확인 (외곽 한 칸까지 허용)
-                if (nr < -1 || nr > rows || nc < -1 || nc > cols) continue;
-
-                const turns = (curr.dir !== -1 && curr.dir !== i) ? curr.turns + 1 : curr.turns;
-                if (turns > 2) continue;
-
-                if (nr === t2.r && nc === t2.c) return true; // 도착
-
-                // 중간 경로가 비어있는지 확인
-                const isInside = nr >= 0 && nr < rows && nc >= 0 && nc < cols;
-                if (isInside && !this.grid[nr][nc].isMatched) continue; // 막힘
-
-                const key = `${nr},${nc},${i}`;
-                if (!visited.has(key) || visited.get(key) > turns) {
-                    visited.set(key, turns);
-                    queue.push({ r: nr, c: nc, dir: i, turns });
+    updateState() {
+        let remaining = 0;
+        let activeTiles = [];
+        this.grid.forEach(tile => {
+            if (!tile.isMatched) {
+                remaining++;
+                if (this.isBlocked(tile)) {
+                    tile.element.classList.add('blocked');
+                } else {
+                    tile.element.classList.remove('blocked');
+                    activeTiles.push(tile);
                 }
             }
+        });
+        this.remainingElement.textContent = remaining;
+
+        // 매칭 가능한 패가 있는지 확인
+        if (remaining > 0) {
+            let hasMoves = false;
+            for (let i = 0; i < activeTiles.length; i++) {
+                for (let j = i + 1; j < activeTiles.length; j++) {
+                    if (activeTiles[i].value === activeTiles[j].value) {
+                        hasMoves = true;
+                        break;
+                    }
+                }
+                if (hasMoves) break;
+            }
+
+            if (!hasMoves) {
+                // 움직일 수 있는 패가 없으면 자동으로 셔플
+                setTimeout(() => {
+                    alert("움직일 수 있는 패가 없어 패를 다시 섞습니다! 😊");
+                    this.shuffleBoard();
+                }, 500);
+            }
+        } else if (remaining === 0) {
+            alert("축하합니다! 모든 패를 맞추셨습니다! 🎉");
         }
-        return false;
     }
 
     shuffleBoard() {
         let pool = [];
-        this.grid.forEach(row => {
-            row.forEach(tile => {
-                if (!tile.isMatched) pool.push(tile.value);
-            });
-        });
-
+        this.grid.forEach(t => { if (!t.isMatched) pool.push(t.data); });
         this.shuffle(pool);
-
-        this.grid.forEach(row => {
-            row.forEach(tile => {
-                if (!tile.isMatched) {
-                    tile.value = pool.pop();
-                    tile.element.textContent = tile.value;
-                    tile.element.classList.remove('selected');
-                }
-            });
+        this.grid.forEach(t => { 
+            if (!t.isMatched) { 
+                t.data = pool.pop(); 
+                t.value = JSON.stringify(t.data);
+                t.element.innerHTML = this.getFaceHTML(t.data); 
+            } 
         });
         this.selectedTile = null;
+        this.updateState();
     }
 
-    showHint() {
-        for (let r1 = 0; r1 < this.rows; r1++) {
-            for (let c1 = 0; c1 < this.cols; c1++) {
-                const t1 = this.grid[r1][c1];
-                if (t1.isMatched) continue;
-
-                for (let r2 = 0; r2 < this.rows; r2++) {
-                    for (let c2 = 0; c2 < this.cols; c2++) {
-                        const t2 = this.grid[r2][c2];
-                        if (t2.isMatched || (r1 === r2 && c1 === c2)) continue;
-
-                        if (t1.value === t2.value && this.findPath(t1, t2)) {
-                            t1.element.classList.add('hint');
-                            t2.element.classList.add('hint');
-                            setTimeout(() => {
-                                t1.element.classList.remove('hint');
-                                t2.element.classList.remove('hint');
-                            }, 2000);
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    updateRemainingCount() {
-        let count = 0;
-        this.grid.forEach(row => {
-            row.forEach(tile => {
-                if (!tile.isMatched) count++;
-            });
-        });
-        this.remainingElement.textContent = count;
-    }
-
-    checkGameWin() {
-        const remaining = parseInt(this.remainingElement.textContent);
-        if (remaining === 0) {
-            this.stopTimer();
-            setTimeout(() => {
-                this.overlay.classList.remove('hidden');
-            }, 500);
-        }
-    }
-
-    // 유틸리티
     shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[array[i]]];
+            [array[i], array[j]] = [array[j], array[i]];
         }
-    }
-
-    startTimer() {
-        this.timerId = setInterval(() => {
-            this.timer++;
-            this.updateTimerDisplay();
-        }, 1000);
-    }
-
-    stopTimer() {
-        clearInterval(this.timerId);
-    }
-
-    updateTimerDisplay() {
-        const mins = Math.floor(this.timer / 60).toString().padStart(2, '0');
-        const secs = (this.timer % 60).toString().padStart(2, '0');
-        this.timerElement.textContent = `${mins}:${secs}`;
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    new MahjongGame();
-});
+window.onload = () => new MahjongSolitaire();
+
+
