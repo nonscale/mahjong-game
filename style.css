@@ -1,12 +1,28 @@
 :root {
-    --bg-color: #1a4d2e; /* 상업용 느낌의 클래식 마작 그린 테이블 */
-    --tile-face: #fffff8; /* 고급스러운 백자/상아색 */
+    --bg-color: #1a4d2e; /* 클래식 그린 테이블 */
+    --tile-face: #fffff8; /* 상아색 */
     --tile-side: #ced4da; 
     --tile-shadow: rgba(0, 0, 0, 0.4);
     --gold: #f39c12;
     --text-color: #ffffff;
     --accent-color: #f39c12;
     --accent-light: #f1c40f;
+
+    /* 타일 배치용 동적 변수 (기본 모바일: 16vw 너비 기준) */
+    --tile-w-half: 8vw;
+    --tile-h-half: 10.5vw;
+    --tile-z-x: 0.6vw;
+    --tile-z-y: 0.8vw;
+}
+
+/* PC 대응 최적화 (600px 이상) */
+@media (min-width: 600px) {
+    :root {
+        --tile-w-half: 25px;
+        --tile-h-half: 33px;
+        --tile-z-x: 4px;
+        --tile-z-y: 6px;
+    }
 }
 
 body {
