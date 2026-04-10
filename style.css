@@ -40,15 +40,17 @@ body {
     width: 100vw;
     height: 100vh;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* 3단 분리: header, main, footer */
     position: relative;
     max-width: 500px; /* PC에서도 단아한 비율 유지 */
     background: rgba(0, 0, 0, 0.2);
     box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    overflow: hidden;
 }
 
 header {
-    padding: 10px 10px 2px;
+    flex-shrink: 0; /* 크기 유지 */
+    padding: 10px 10px 5px;
     text-align: center;
     z-index: 10;
 }
@@ -75,24 +77,23 @@ h1 {
     color: #ecf0f1;
 }
 
-/* 마작 솔리테어 보드 */
+/* 마작 솔리테어 보드 컨테이너 (중단 영역) */
 #game-container {
-    flex: 1;
+    flex: 1; /* 상단/하단을 제외한 중앙의 모든 가용 면적 차지 */
     position: relative;
     width: 100%;
-    margin-top: 5px;
-    margin-bottom: 5px;
     overflow: hidden; 
+    display: flex;
+    justify-content: center; /* 가로 중앙 */
+    align-items: center;     /* 세로 중앙 */
 }
 
 #board {
-    position: absolute;
-    top: 42%; /* 보드 전체를 위로 끌어올려 상단 여백 제거 */
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
-    max-width: 500px;
+    position: relative; /* 컨테이너 내에서 scale 조절용 */
+    width: 0;
+    height: 0;
+    /* JS에서 scaleFactor와 함께 translate(-50%, -50%)를 적용하여 
+       정중앙에서부터 타일이 뻗어나가도록 함 */
 }
 
 /* 프리미엄 입체 마작 패 (자동 반응형 꽉찬 크기 조절) */
@@ -259,8 +260,9 @@ h1 {
     pointer-events: none;
 }
 
-/* 푸터 및 인터페이스 */
+/* 푸터 및 인터페이스 (하단 영역) */
 footer {
+    flex-shrink: 0; /* 크기 유지 */
     padding: 10px 20px 20px;
     display: flex;
     gap: 15px;

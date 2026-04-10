@@ -162,25 +162,22 @@ class MahjongSolitaire {
      * 3. 자동 패딩(10px) 관리
      * 4. 반응형 리사이즈
      */
+    /**
+     * 🧩 공학적 요구사항 충족 (최종형): 중단 컨테이너 기준 피팅
+     */
     updateBoardScale() {
         if (this.grid.length === 0) return;
 
-        // [Step 1] 논리적 뷰박스(Logical Viewbox) 정의
-        // 각 타일의 x, y 좌표 유닛을 실제 논리적 픽셀 경계로 환산
+        // 1. 논리적 바운딩 박스 계산
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        
         const rootStyles = getComputedStyle(document.documentElement);
         const unitW = parseFloat(rootStyles.getPropertyValue('--tile-w-half')) || 32;
         const unitH = parseFloat(rootStyles.getPropertyValue('--tile-h-half')) || 42;
-        const tileW = unitW * 2;
-        const tileH = unitH * 2;
 
         this.grid.forEach(tile => {
             if (tile.isMatched) return;
-            // 타일의 중심으로부터 논리적 경계 계산
             const lx = tile.x * unitW;
             const ly = tile.y * unitH;
-            
             minX = Math.min(minX, lx - unitW);
             maxX = Math.max(maxX, lx + unitW);
             minY = Math.min(minY, ly - unitH);
@@ -189,24 +186,23 @@ class MahjongSolitaire {
 
         const logicalWidth = maxX - minX;
         const logicalHeight = maxY - minY;
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
 
-        // [Step 2 & 3] 안전 영역(Safe Area) 및 Padding(10px)을 고려한 동적 맞춤
+        // 2. 중단 컨테이너(Main) 영역 추출
         const container = document.getElementById('game-container');
-        const padding = 15; // 최소 시각적 여백 (10px + 여유분)
-        
+        const padding = 20; 
         const availableWidth = container.clientWidth - (padding * 2);
         const availableHeight = container.clientHeight - (padding * 2);
 
-        // Aspect Ratio 유지를 위한 Contain 전략 (scale factor 계산)
-        const scaleX = availableWidth / logicalWidth;
-        const scaleY = availableHeight / logicalHeight;
+        if (availableWidth <= 0 || availableHeight <= 0) return;
+
+        // 3. 스케일 팩터 계산 (Contain 전략)
+        const scale = Math.min(availableWidth / logicalWidth, availableHeight / logicalHeight, 1.5);
         
-        // 어디 하나 잘려나가지 않게 가장 작은 스케일 선택 (Contain)
-        let scaleFactor = Math.min(scaleX, scaleY);
-        
-        // [Step 4] 반응형 리사이즈 적용 및 중앙 정렬
-        // translate(-50%, -50%)와 결합하여 보드를 정확히 컨테이너 중앙에 배치
-        this.boardElement.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
+        // 4. 보드 위치 보정 (중앙 정렬) 및 스케일 적용
+        // Flexbox가 #board를 중앙에 두므로, #board 내부의 콘텐츠 center가 (0,0)에 오도록 shift
+        this.boardElement.style.transform = `scale(${scale}) translate(${-centerX}px, ${-centerY}px)`;
     }
     
     getFaceHTML(data) {
@@ -244,23 +240,22 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // CSS 변수를 사용하여 PC/모바일 환경에 따라 자동으로 배치 간격 조절
-        el.style.left = `50%`; 
-        el.style.top = `50%`; 
+        // CSS 변수(Logical Unit)를 사용하여 좌표 계산
         el.style.zIndex = z * 10 + 100;
         
-        const xTransform = `calc(-50% + (${x} * var(--tile-w-half)) - (${z} * var(--tile-z-x)))`;
-        const yTransform = `calc(-50% + (${y} * var(--tile-h-half)) - (${z} * var(--tile-z-y)))`;
+        // 50% 등을 사용하지 않고, 보드의 (0,0)을 기준으로 배치 (중앙 정렬은 updateBoardScale이 담당)
+        const lx = `calc(${x} * var(--tile-w-half))`;
+        const ly = `calc(${y} * var(--tile-h-half))`;
+        const szx = `calc(${z} * var(--tile-z-x))`;
+        const szy = `calc(${z} * var(--tile-z-y))`;
         
-        el.style.transform = `translate(${xTransform}, ${yTransform})`;
+        el.style.transform = `translate(calc(${lx} - ${szx}), calc(${ly} - ${szy}))`;
 
         el.innerHTML = this.getFaceHTML(tileData);
-        
         el.dataset.baseTransform = el.style.transform;
         
         const tile = { x, y, z, value: JSON.stringify(tileData), data: tileData, element: el, isMatched: false };
         el.onclick = () => this.handleTileClick(tile);
-        
         return tile;
     }
 
