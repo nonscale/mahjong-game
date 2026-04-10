@@ -331,8 +331,17 @@ button:active {
 /* 연결선 시각화 */
 .connection-line {
     position: absolute;
-    background-color: var(--accent-light);
+    background-color: var(--gold);
     z-index: 5;
     pointer-events: none;
     opacity: 0.6;
+}
+
+/* 마작 이미지 스타일 */
+.mj-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 2px;
+    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
 }

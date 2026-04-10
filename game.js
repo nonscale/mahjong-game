@@ -190,42 +190,27 @@ class MahjongSolitaire {
     }
     
     getFaceHTML(data) {
-        if (data.type === 'man') {
-            return `<div class="face"><div class="mj-man"><span class="mj-num">${data.val}</span><span class="mj-char">萬</span></div></div>`;
+        const basePath = 'riichi-mahjong-tiles-master/Regular';
+        let fileName = '';
+
+        if (data.type === 'man') fileName = `Man${data.num || data.val}`;
+        else if (data.type === 'pin') fileName = `Pin${data.val}`;
+        else if (data.type === 'sou') fileName = `Sou${data.val}`;
+        else if (data.type === 'wind') {
+            const windMap = { '東': 'Ton', '南': 'Nan', '西': 'Shaa', '北': 'Pei' };
+            fileName = windMap[data.val];
+        } else if (data.type === 'dragon') {
+            const dragonMap = { '中': 'Chun', '發': 'Hatsu', '白': 'Haku' };
+            fileName = dragonMap[data.val];
         }
-        if (data.type === 'pin') {
-            let dots = '';
-            for(let i=0; i<data.val; i++) {
-                let clr = (data.val===1 || (data.val===7 && i>3) || (data.val===9 && i>5) ? 'red' : (data.val===8 && i%2===1 ? 'green' : ''));
-                dots += `<div class="dot ${clr}"></div>`;
-            }
-            // 가독성을 위해 구석에 작은 숫자 추가
+
+        if (fileName) {
             return `<div class="face">
-                <div class="mj-pin layout-${data.val}">${dots}</div>
+                <img src="${basePath}/${fileName}.svg" alt="${fileName}" class="mj-img">
                 <div class="mj-guide-num">${data.val}</div>
             </div>`;
         }
-        if (data.type === 'sou') {
-            let symbol = data.val === 1 ? '🦚' : '';
-            let sticks = '';
-            if (data.val !== 1) {
-                for(let i=0; i<data.val; i++) {
-                    let clr = (data.val===8 && i<4) || (data.val===6 && i<3) ? 'red' : 'green';
-                    sticks += `<div class="stick ${clr}"></div>`;
-                }
-            }
-            return `<div class="face">
-                <div class="mj-sou layout-${data.val}">${data.val === 1 ? symbol : sticks}</div>
-                <div class="mj-guide-num">${data.val}</div>
-            </div>`;
-        }
-        if (data.type === 'wind') {
-            return `<div class="face"><div class="mj-font wind-black">${data.val}</div></div>`;
-        }
-        if (data.type === 'dragon') {
-            let cls = data.val === '中' ? 'dragon-red' : (data.val === '發' ? 'dragon-green' : 'dragon-blue');
-            return `<div class="face"><div class="mj-font ${cls}">${data.val==='白'?'B':data.val}</div></div>`;
-        }
+        return `<div class="face">${data.val}</div>`;
     }
 
     createTile(x, y, z, tileData) {
