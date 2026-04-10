@@ -189,12 +189,11 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // 타일 너비를 10.6vw로 확대. 최대 레이아웃 폭이 약 94.5vw에 달하도록 조정.
-        // 1 단위(unit)는 타일 너비/높이의 정확히 절반.
-        const xOffsetVw = x * 5.3; // 10.6vw / 2
-        const yOffsetVw = y * 7.0; // 약간 겹치게 상하 맞물림
-        const zShiftX = z * 0.5;
-        const zShiftY = z * 0.8;
+        // 타일 크기 확대에 맞춘 좌표 스케일링 (12.5vw 기반)
+        const xOffsetVw = x * 6.25; 
+        const yOffsetVw = y * 8.2;  
+        const zShiftX = z * 0.6;
+        const zShiftY = z * 0.9;
         
         el.style.left = `50%`; 
         el.style.top = `50%`; 
