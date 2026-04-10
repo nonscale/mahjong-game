@@ -344,7 +344,11 @@ class MahjongSolitaire {
                 }, 500);
             }
         } else if (remaining === 0) {
-            alert("축하합니다! 모든 패를 맞추셨습니다! 🎉");
+            // 모든 패를 맞추면 잠시 후 자동으로 새 게임 시작
+            setTimeout(() => {
+                alert("축하합니다! 모든 패를 맞추셨습니다! 🎉");
+                this.startNewGame();
+            }, 500);
         }
     }
 
