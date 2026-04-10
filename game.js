@@ -156,59 +156,57 @@ class MahjongSolitaire {
     }
 
     /**
-     * 🧪 [Verify] 지능형 자동 리사이징 엔진
-     * 모든 타일의 위치를 계산하여 화면(PC/모바일)에 꽉 차도록 보드 스케일을 자동 조절합니다.
+     * 🧩 공학적 요구사항 충족: 지능형 스케일링 & 피팅 엔진
+     * 1. Logical Viewbox 정의
+     * 2. Safe Area 기반 Contain 전략
+     * 3. 자동 패딩(10px) 관리
+     * 4. 반응형 리사이즈
      */
     updateBoardScale() {
         if (this.grid.length === 0) return;
 
-        // 1. 모든 타일을 포함하는 영역(Bounding Box) 계산
+        // [Step 1] 논리적 뷰박스(Logical Viewbox) 정의
+        // 각 타일의 x, y 좌표 유닛을 실제 논리적 픽셀 경계로 환산
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         
-        // 실제 픽셀 단위 오프셋을 추측하지 않고, 타일의 상대 좌표 x, y를 이용해 범위를 구함
-        // (CSS 변수 var(--tile-w-half) 등의 실제 현재 값을 가져오는 대신 비율로 계산)
+        const rootStyles = getComputedStyle(document.documentElement);
+        const unitW = parseFloat(rootStyles.getPropertyValue('--tile-w-half')) || 32;
+        const unitH = parseFloat(rootStyles.getPropertyValue('--tile-h-half')) || 42;
+        const tileW = unitW * 2;
+        const tileH = unitH * 2;
+
         this.grid.forEach(tile => {
             if (tile.isMatched) return;
-            // 좌표 단위 기준 (너비 절반=1단위)
-            minX = Math.min(minX, tile.x - 1);
-            maxX = Math.max(maxX, tile.x + 1);
-            minY = Math.min(minY, tile.y - 1.5);
-            maxY = Math.max(maxY, tile.y + 1.5);
+            // 타일의 중심으로부터 논리적 경계 계산
+            const lx = tile.x * unitW;
+            const ly = tile.y * unitH;
+            
+            minX = Math.min(minX, lx - unitW);
+            maxX = Math.max(maxX, lx + unitW);
+            minY = Math.min(minY, ly - unitH);
+            maxY = Math.max(maxY, ly + unitH);
         });
 
+        const logicalWidth = maxX - minX;
+        const logicalHeight = maxY - minY;
+
+        // [Step 2 & 3] 안전 영역(Safe Area) 및 Padding(10px)을 고려한 동적 맞춤
         const container = document.getElementById('game-container');
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-
-        // 2. 현재 배치가 차지하는 '가상' 픽셀 크기 (모바일 기준 16vw 너비 가정 시)
-        // 실제 정확한 픽셀보다는 '비율'이 중요함.
-        // x 단위 하나당 var(--tile-w-half) 만큼 이동함.
-        const boardWidthUnits = (maxX - minX);
-        const boardHeightUnits = (maxY - minY);
-
-        // 3. 화면 가로/세로 중 더 좁은 쪽에 맞춰 스케일 결정 (여백 5% 확보)
-        // CSS 기본값이 이미 꽤 크므로(16vw), 화면보다 크면 줄이고 작으면 키움.
-        const rootStyles = getComputedStyle(document.documentElement);
-        const halfWStr = rootStyles.getPropertyValue('--tile-w-half').trim();
-        const halfHStr = rootStyles.getPropertyValue('--tile-h-half').trim();
+        const padding = 15; // 최소 시각적 여백 (10px + 여유분)
         
-        let unitW, unitH;
-        if (halfWStr.includes('vw')) {
-            unitW = (parseFloat(halfWStr) / 100) * window.innerWidth;
-            unitH = (parseFloat(halfHStr) / 100) * window.innerWidth;
-        } else {
-            unitW = parseFloat(halfWStr);
-            unitH = parseFloat(halfHStr);
-        }
+        const availableWidth = container.clientWidth - (padding * 2);
+        const availableHeight = container.clientHeight - (padding * 2);
 
-        const realBoardW = boardWidthUnits * unitW;
-        const realBoardH = boardHeightUnits * unitH;
-
-        const scaleW = (cw * 0.95) / realBoardW;
-        const scaleH = (ch * 0.95) / realBoardH;
-        const finalScale = Math.min(scaleW, scaleH, 1.2); // 너무 무한정 커지진 않게 1.2배 캡
-
-        this.boardElement.style.transform = `translate(-50%, -50%) scale(${finalScale})`;
+        // Aspect Ratio 유지를 위한 Contain 전략 (scale factor 계산)
+        const scaleX = availableWidth / logicalWidth;
+        const scaleY = availableHeight / logicalHeight;
+        
+        // 어디 하나 잘려나가지 않게 가장 작은 스케일 선택 (Contain)
+        let scaleFactor = Math.min(scaleX, scaleY);
+        
+        // [Step 4] 반응형 리사이즈 적용 및 중앙 정렬
+        // translate(-50%, -50%)와 결합하여 보드를 정확히 컨테이너 중앙에 배치
+        this.boardElement.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
     }
     
     getFaceHTML(data) {
