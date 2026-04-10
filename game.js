@@ -31,12 +31,12 @@ class MahjongSolitaire {
         this.init();
     }
 
-    // 1. 거북이 레이아웃 (축소 조정)
+    // 1. 거북이 레이아웃 (더욱 축소)
     getMobileTurtleLayout() {
         let coords = [];
         for (let y = -4; y <= 4; y += 2) {
-            for (let x = -8; x <= 8; x += 2) {
-                if (Math.abs(x) + Math.abs(y) <= 10) coords.push([0, y, x]);
+            for (let x = -6; x <= 6; x += 2) {
+                if (Math.abs(x) + Math.abs(y) <= 8) coords.push([0, y, x]);
             }
         }
         for (let y = -2; y <= 2; y += 2) {
@@ -48,11 +48,11 @@ class MahjongSolitaire {
         return coords;
     }
 
-    // 2. 피라미드 레이아웃 (축소 조정)
+    // 2. 피라미드 레이아웃 (더욱 축소)
     getPyramidLayout() {
         let coords = [];
-        for (let z = 0; z < 4; z++) {
-            let size = 6 - z * 2;
+        for (let z = 0; z < 3; z++) {
+            let size = 4 - z * 2;
             if (size < 0) break;
             for (let y = -size; y <= size; y += 2) {
                 for (let x = -size; x <= size; x += 2) {
@@ -63,18 +63,18 @@ class MahjongSolitaire {
         return coords;
     }
 
-    // 3. 아레나 레이아웃 (축소 조정)
+    // 3. 아레나 레이아웃 (더욱 축소)
     getArenaLayout() {
         let coords = [];
         for (let y = -4; y <= 4; y += 2) {
-            for (let x = -6; x <= 6; x += 2) {
+            for (let x = -4; x <= 4; x += 2) {
                 coords.push([0, y, x]);
             }
         }
         for (let z = 1; z < 3; z++) {
             for (let y = -4; y <= 4; y += 2) {
-                for (let x = -6; x <= 6; x += 2) {
-                    if (Math.abs(x) === 6 || Math.abs(y) === 4) {
+                for (let x = -4; x <= 4; x += 2) {
+                    if (Math.abs(x) === 4 || Math.abs(y) === 4) {
                         coords.push([z, y, x]);
                     }
                 }
@@ -83,11 +83,11 @@ class MahjongSolitaire {
         return coords;
     }
 
-    // 4. 십자형 레이아웃 (Cross - 축소 조정)
+    // 4. 십자형 레이아웃 (더욱 축소)
     getCrossLayout() {
         let coords = [];
         for (let z = 0; z < 3; z++) {
-            let size = 8 - z * 2;
+            let size = 6 - z * 2;
             for (let i = -size; i <= size; i += 2) {
                 coords.push([z, 0, i]); 
                 if (i !== 0) coords.push([z, i, 0]); 
@@ -96,11 +96,11 @@ class MahjongSolitaire {
         return coords;
     }
 
-    // 5. 다이아몬드 레이아웃 (축소 조정)
+    // 5. 다이아몬드 레이아웃 (더욱 축소 - 마름모형)
     getDiamondLayout() {
         let coords = [];
         for (let z = 0; z < 2; z++) {
-            let size = 8 - z * 2;
+            let size = 6 - z * 2;
             for (let y = -size; y <= size; y += 2) {
                 for (let x = -size; x <= size; x += 2) {
                     if (Math.abs(x) + Math.abs(y) <= size) {
@@ -190,9 +190,8 @@ class MahjongSolitaire {
         el.className = 'tile';
         
         // 보드 중앙점(50%, 50%)을 기준으로 일정한 픽셀 간격 배치
-        // 타일의 기본 크기가 대략 48x66이고 1단위가 그 절반에 해당하도록 구현
-        const xOffset = x * 25; // x 좌표당 25px
-        const yOffset = y * 34; // y 좌표당 34px
+        const xOffset = x * 24; 
+        const yOffset = y * 32; 
         
         el.style.left = `50%`; 
         el.style.top = `50%`; 
