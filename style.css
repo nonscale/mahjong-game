@@ -1,17 +1,18 @@
 :root {
-    --bg-color: #1a4d2e; /* 상업용 느낌의 클래식 마작 그린 테이블 */
-    --tile-face: #fffff8; /* 고급스러운 백자/상아색 */
-    --tile-side: #ced4da; 
-    --tile-shadow: rgba(0, 0, 0, 0.4);
-    --gold: #f39c12;
+    --bg-color: #0d2a1b; /* 더 깊고 어두운 숲속의 그린 */
+    --tile-face: #e0f2f1; /* 맑은 비취색 베이스 */
+    --tile-side: #80cbc4; 
+    --tile-shadow: rgba(0, 0, 0, 0.6);
+    --gold: #d4af37; /* 리얼 골드 컬러 */
     --text-color: #ffffff;
-    --accent-color: #f39c12;
-    --accent-light: #f1c40f;
+    --accent-color: #d4af37;
 }
 
 body {
     background-color: var(--bg-color);
-    background-image: radial-gradient(circle, #27623a 0%, #153c22 100%);
+    background-image: 
+        radial-gradient(circle at center, #1a4d2e 0%, #0d2a1b 100%),
+        url('https://www.transparenttextures.com/patterns/dark-leather.png'); /* 가죽 질감 추가 */
     margin: 0;
     overflow: hidden;
     font-family: 'Noto Sans KR', sans-serif;
@@ -79,29 +80,29 @@ h1 {
     height: 100%;
 }
 
-/* 프리미엄 입체 마작 패 (크기 극대화) */
+/* 프리미엄 입체 마작 패 (Jade 테마) */
 .tile {
     position: absolute;
-    width: 52px; /* 약간 더 크게 */
-    height: 72px;
+    width: 54px;
+    height: 74px;
     cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s, background 0.2s;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s;
     user-select: none;
     
-    /* 고급스러운 상아/백자 질감 */
-    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #fffdf0 50%, #f0ebd8 100%);
+    /* 비취(Jade) 특유의 반투명한 녹색 광택질감 */
+    background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 40%, #80cbc4 80%, #4db6ac 100%);
     border-radius: 8px;
-    border: 1px solid rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
     
-    /* 묵직한 3D 두께감 및 음영 리마스터링 */
+    /* 유료 게임급 3D 음영 디자인 */
     box-shadow: 
-        inset 0 1px 1px rgba(255,255,255,0.8),
+        inset 0 2px 3px rgba(255,255,255,0.8),
         -1px 1px 0px #ffffff,
-        -1px 2px 0px #8395a7,
-        -2px 3px 0px #708090,
-        -3px 4px 0px #576574,
-        -4px 5px 2px #2c3e50,
-        -5px 8px 12px rgba(0,0,0,0.5);
+        -1px 2px 0px #4db6ac,
+        -2px 3px 0px #26a69a,
+        -3px 4px 0px #00897b,
+        -4px 5px 2px #004d40,
+        -6px 10px 15px rgba(0,0,0,0.6);
         
     display: flex;
     justify-content: center;
@@ -109,30 +110,18 @@ h1 {
     overflow: hidden;
 }
 
-/* 타일 전면 테두리 조각 효과 */
-.tile::before {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    right: 4px;
-    bottom: 4px;
-    border: 1px solid rgba(0,0,0,0.05);
-    border-radius: 4px;
-    pointer-events: none;
-}
-
-/* CSS Artwork: 마작 패 내부 디자인 */
+/* 옥 패 특유의 인레이 필터 */
 .face {
-    width: 85%;
-    height: 85%;
+    width: 90%;
+    height: 90%;
     display: flex;
     justify-content: center;
     align-items: center;
     pointer-events: none;
-    font-family: "Gowun Batang", "Noto Serif KR", serif;
+    font-family: "Gowun Batang", serif;
     font-weight: 800;
-    filter: drop-shadow(0.5px 0.5px 0px rgba(0,0,0,0.2));
+    /* 음각(Engraving) 느낌을 주는 강력한 드롭 섀도우 */
+    filter: drop-shadow(1px 1px 1px rgba(255,255,255,0.8)) drop-shadow(-1px -1px 1px rgba(0,0,0,0.4));
 }
 
 /* 만자(Man) 디자인 - 더 깊은 색감 */
@@ -173,12 +162,12 @@ h1 {
     width: 13px;
     height: 13px;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #3498db, #1d4e89); /* 보석 질감 파랑 */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    background: radial-gradient(circle at 30% 30%, #ffd700, var(--gold)); /* 금색 보석 질감 */
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.5), 1px 1px 1px rgba(255,255,255,0.3);
     margin: 0 auto;
 }
-.dot.red { background: radial-gradient(circle at 30% 30%, #e74c3c, #a91e1e); }
-.dot.green { background: radial-gradient(circle at 30% 30%, #2ecc71, #1e6b3c); }
+.dot.red { background: radial-gradient(circle at 30% 30%, #ff4b2b, #a91e1e); }
+.dot.green { background: radial-gradient(circle at 30% 30%, #00ff87, #006036); }
 
 /* 삭자(Sou) 디자인: 세로 막대기(대나무 흉내) */
 .mj-sou {
@@ -190,18 +179,18 @@ h1 {
     height: 80%;
 }
 /* 삭 1은 참새나 공작이지만 단순 큰 화려한 글자로 대체 */
-.mj-sou.layout-1 { display: flex; color: #1e6b3c; font-size: 2.2rem; filter: saturate(1.5); }
+.mj-sou.layout-1 { display: flex; color: #004d40; font-size: 2.5rem; filter: drop-shadow(0 0 1px gold); }
 .mj-sou:not(.layout-1) { grid-template-columns: repeat(3, 1fr); align-items: center; }
 .stick {
-    width: 7px;
-    height: 16px;
-    background: linear-gradient(to bottom, #2ecc71, #1e6b3c);
+    width: 8px;
+    height: 18px;
+    background: linear-gradient(to bottom, #ffd700, var(--gold));
     border-radius: 4px;
     margin: 0 auto;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.4), 1px 1px 1px rgba(255,255,255,0.2);
 }
-.stick.red { background: linear-gradient(to bottom, #e74c3c, #a91e1e); }
-.stick.blue { background: linear-gradient(to bottom, #3498db, #1d4e89); }
+.stick.red { background: linear-gradient(to bottom, #ff4b2b, #a91e1e); }
+.stick.blue { background: linear-gradient(to bottom, #2196f3, #0d47a1); }
 
 /* 자패/풍패(Wind/Dragon) 큰 글씨 */
 .mj-font {
