@@ -29,6 +29,35 @@ class MahjongSolitaire {
         this.isProcessing = false;
 
         this.init();
+        window.addEventListener('resize', () => this.scaleBoard());
+    }
+
+    scaleBoard() {
+        const container = document.getElementById('game-container');
+        const board = this.boardElement;
+        
+        // 보드의 실제 차지 범위 계산 (안전 마진 포함)
+        // 현재 좌표계에서 가장 멀리 있는 패의 위치를 기반으로 함
+        let minX = 0, maxX = 0, minY = 0, maxY = 0;
+        this.layout.forEach(([z, y, x]) => {
+            minX = Math.min(minX, x * 24 - 30);
+            maxX = Math.max(maxX, x * 24 + 30);
+            minY = Math.min(minY, y * 32 - 40);
+            maxY = Math.max(maxY, y * 32 + 40);
+        });
+
+        const contentWidth = maxX - minX;
+        const contentHeight = maxY - minY;
+        
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        
+        // 화면 크기에 맞춘 배율 계산 (가로/세로 중 더 꽉 차는 쪽 기준)
+        const scaleX = containerWidth / contentWidth;
+        const scaleY = containerHeight / contentHeight;
+        const scale = Math.min(scaleX, scaleY);
+        
+        board.style.transform = `translate(-50%, -50%) scale(${scale})`;
     }
 
     // 1. 거북이 레이아웃 (더욱 축소)
@@ -143,87 +172,16 @@ class MahjongSolitaire {
         }
         this.shuffle(pool);
 
-        // 1. 논리적 바운딩 박스 계산 및 보드 크기 강제 설정 (Flexbox 정렬용)
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        const rootStyles = getComputedStyle(document.documentElement);
-        const unitW = parseFloat(rootStyles.getPropertyValue('--tile-w-half')) || 40;
-        const unitH = parseFloat(rootStyles.getPropertyValue('--tile-h-half')) || 55;
-
-        this.layout.forEach(pos => {
-            const [z, y, x] = pos;
-            const lx = x * unitW;
-            const ly = y * unitH;
-            minX = Math.min(minX, lx - unitW);
-            maxX = Math.max(maxX, lx + unitW);
-            minY = Math.min(minY, ly - unitH);
-            maxY = Math.max(maxY, ly + unitH);
-        });
-
-        const boardWidth = maxX - minX;
-        const boardHeight = maxY - minY;
-        
-        // 보드에 실제 물리적 크기 주입 (Flexbox가 중앙을 잡을 수 있게 함)
-        this.boardElement.style.width = `${boardWidth}px`;
-        this.boardElement.style.height = `${boardHeight}px`;
-
-        // 2. 타일 생성 및 배치 (보드 내부 0, 0 기준 정규화)
         this.layout.forEach((pos, i) => {
             const [z, y, x] = pos;
             const tileData = pool[i];
-            
-            // 보드 내부 좌표로 변환 (minX, minY 만큼 시프트하여 보드 안에 쏙 들어가게 함)
-            const lx = (x * unitW) - minX;
-            const ly = (y * unitH) - minY;
-            
-            const tile = this.createTileNormalized(lx, ly, z, tileData);
+            const tile = this.createTile(x, y, z, tileData);
             this.grid.push(tile);
             this.boardElement.appendChild(tile.element);
         });
 
-        this.updateBoardScale(); 
+        this.scaleBoard();
         this.updateState();
-    }
-
-    createTileNormalized(lx, ly, z, tileData) {
-        const el = document.createElement('div');
-        el.className = 'tile';
-        el.style.zIndex = z * 10 + 100;
-        
-        // 3D 효과를 위한 z-shift
-        const szx = z * 5; 
-        const szy = z * 8;
-        
-        // 보드(0,0) 기준 절대 픽셀 배치
-        el.style.transform = `translate(${lx - szx}px, ${ly - szy}px)`;
-
-        el.innerHTML = this.getFaceHTML(tileData);
-        el.dataset.baseTransform = el.style.transform;
-        
-        const tile = { x: lx, y: ly, z, value: JSON.stringify(tileData), data: tileData, element: el, isMatched: false };
-        el.onclick = () => this.handleTileClick(tile);
-        return tile;
-    }
-
-    /**
-     * 🧩 업계 표준: 고정 크기 보드 + CSS Transform 스켈링 (Zoom 전략)
-     */
-    updateBoardScale() {
-        if (this.grid.length === 0) return;
-        
-        const container = document.getElementById('game-container');
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        const bw = parseFloat(this.boardElement.style.width) || 1;
-        const bh = parseFloat(this.boardElement.style.height) || 1;
-
-        if (cw <= 0 || ch <= 0) return;
-
-        // 업계 표준: 설정된 보드 크기 대비 컨테이너 비율 산출 (여백 5% 확보)
-        const scale = Math.min(cw / bw, ch / bh) * 0.95;
-        
-        // 보드판 자체가 이미 Flexbox에 의해 중앙에 있으므로 스케일만 적용
-        this.boardElement.style.transform = `scale(${scale})`;
-        this.boardElement.style.transformOrigin = "center center";
     }
     
     getFaceHTML(data) {
@@ -261,22 +219,25 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // CSS 변수(Logical Unit)를 사용하여 좌표 계산
+        // 보드 중앙점(50%, 50%)을 기준으로 일정한 픽셀 간격 배치
+        const xOffset = x * 24; 
+        const yOffset = y * 32; 
+        
+        el.style.left = `50%`; 
+        el.style.top = `50%`; 
         el.style.zIndex = z * 10 + 100;
         
-        // 50% 등을 사용하지 않고, 보드의 (0,0)을 기준으로 배치 (중앙 정렬은 updateBoardScale이 담당)
-        const lx = `calc(${x} * var(--tile-w-half))`;
-        const ly = `calc(${y} * var(--tile-h-half))`;
-        const szx = `calc(${z} * var(--tile-z-x))`;
-        const szy = `calc(${z} * var(--tile-z-y))`;
-        
-        el.style.transform = `translate(calc(${lx} - ${szx}), calc(${ly} - ${szy}))`;
+        // x, y 위치 기반 + z 높이 오프셋(두께감)을 통합하여 계산
+        el.style.transform = `translate(calc(-50% + ${xOffset}px - ${z * 4}px), calc(-50% + ${yOffset}px - ${z * 6}px))`;
 
         el.innerHTML = this.getFaceHTML(tileData);
+        
+        // 타일 클릭 시 들썩임 방지를 위해 트랜스폼 값을 저장해 둡니다.
         el.dataset.baseTransform = el.style.transform;
         
         const tile = { x, y, z, value: JSON.stringify(tileData), data: tileData, element: el, isMatched: false };
         el.onclick = () => this.handleTileClick(tile);
+        
         return tile;
     }
 
@@ -391,20 +352,16 @@ class MahjongSolitaire {
     }
 
     shuffleBoard() {
-        if (this.grid.length === 0) return;
-        const currentData = this.grid.filter(t => !t.isMatched).map(t => t.data);
-        this.shuffle(currentData);
-        
-        let idx = 0;
-        this.grid.forEach(tile => {
-            if (!tile.isMatched) {
-                tile.data = currentData[idx++];
-                tile.value = JSON.stringify(tile.data);
-                tile.element.innerHTML = this.getFaceHTML(tile.data);
-            }
+        let pool = [];
+        this.grid.forEach(t => { if (!t.isMatched) pool.push(t.data); });
+        this.shuffle(pool);
+        this.grid.forEach(t => { 
+            if (!t.isMatched) { 
+                t.data = pool.pop(); 
+                t.value = JSON.stringify(t.data);
+                t.element.innerHTML = this.getFaceHTML(t.data); 
+            } 
         });
-        
-        this.updateBoardScale(); // 셔플 후에도 위치 재조정
         this.selectedTile = null;
         this.updateState();
     }
@@ -417,13 +374,6 @@ class MahjongSolitaire {
     }
 }
 
-// 📱 화면 회전 및 리사이즈 시 즉각 대응 (Verify)
-window.addEventListener('resize', () => {
-    if (window.gameInstance) {
-        window.gameInstance.updateBoardScale();
-    }
-});
+window.onload = () => new MahjongSolitaire();
 
-window.onload = () => {
-    window.gameInstance = new MahjongSolitaire();
-};
+
