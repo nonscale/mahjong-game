@@ -84,15 +84,15 @@ h1 {
 /* 프리미엄 입체 마작 패 (자동 반응형 꽉찬 크기 조절) */
 .tile {
     position: absolute;
-    /* vmin 단위를 사용하여 가로/세로 중 작은 쪽에 맞춰 자동으로 크기 조절 (PC/모바일 공용) */
-    width: 10vmin; 
-    height: 13.5vmin; 
+    /* 모바일 기본: 화면을 시원하게 채우는 크기 */
+    width: 16vw; 
+    height: 22vw; 
     cursor: pointer;
     transition: filter 0.2s, background 0.2s;
     user-select: none;
     
     background: linear-gradient(145deg, var(--tile-face), #f0ebd8);
-    border-radius: 1.2vmin;
+    border-radius: 2vw;
     border: 1px solid rgba(0,0,0,0.1);
     
     box-shadow: 
@@ -100,11 +100,25 @@ h1 {
         -1px 2px 0px #8395a7,
         -2px 3px 0px #8395a7,
         -2px 4px 0px #576574,
-        -0.5vmin 0.8vmin 1vmin rgba(0,0,0,0.4);
+        -1vw 1.5vw 2vw rgba(0,0,0,0.4);
         
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* PC 및 대화면 대응: 패가 너무 커지지 않도록 고정 크기 제어 */
+@media (min-width: 600px) {
+    .tile {
+        width: 50px;
+        height: 68px;
+        border-radius: 6px;
+        box-shadow: 
+            -1px 1px 0px #fff,
+            -1px 2px 0px #8395a7,
+            -2px 4px 0px #576574,
+            -4px 6px 10px rgba(0,0,0,0.4);
+    }
 }
 
 /* CSS Artwork: 마작 패 내부 디자인 */
@@ -127,12 +141,16 @@ h1 {
     line-height: 1.1;
 }
 .mj-man .mj-num {
-    color: #c0392b; /* 진한 빨강 */
-    font-size: 3.8vmin;
+    color: #c0392b; 
+    font-size: 6vw;
 }
 .mj-man .mj-char {
-    color: #2c3e50; /* 진한 남색/검정 */
-    font-size: 3.8vmin;
+    color: #2c3e50;
+    font-size: 6vw;
+}
+
+@media (min-width: 600px) {
+    .mj-man .mj-num, .mj-man .mj-char { font-size: 1.5rem; }
 }
 
 /* 통자(Pin) 디자인: 작은 동그라미들의 그리드 레이아웃 */
@@ -186,12 +204,17 @@ h1 {
 
 /* 자패/풍패(Wind/Dragon) 큰 글씨 */
 .mj-font {
-    font-size: 6vmin;
+    font-size: 8vw;
 }
 .dragon-red { color: #c0392b; }
 .dragon-green { color: #27ae60; }
-.dragon-blue { color: #2980b9; border: 0.3vmin solid #2980b9; border-radius: 0.3vmin; padding: 0 0.2vmin; font-size: 4.8vmin; }
+.dragon-blue { color: #2980b9; border: 0.4vw solid #2980b9; border-radius: 0.5vw; padding: 0 0.2vw; font-size: 6vw; }
 .wind-black { color: #2c3e50; }
+
+@media (min-width: 600px) {
+    .mj-font { font-size: 2.2rem; }
+    .dragon-blue { border-width: 2px; font-size: 1.8rem; }
+}
 
 /* 선택 및 가림 처리 */
 .tile.blocked {
