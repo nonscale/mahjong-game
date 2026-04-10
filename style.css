@@ -1,0 +1,247 @@
+:root {
+    --bg-color: #fcfaf5;
+    --card-bg: #ffffff;
+    --text-primary: #2c2c2c;
+    --accent-color: #8b5e34; /* 차분한 나무색/금색 */
+    --accent-light: #d4a373;
+    --border-color: #e0dcd0;
+    --success-color: #52796f;
+    --shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    --card-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    line-height: 1.6;
+}
+
+#app {
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    position: relative;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: var(--accent-color);
+    letter-spacing: -0.5px;
+}
+
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    box-shadow: var(--shadow);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-item .label {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.stat-item span:not(.label) {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* 게임 보드 */
+#game-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+}
+
+#board {
+    display: grid;
+    gap: 6px;
+    padding: 5px;
+    margin: auto;
+}
+
+.tile {
+    width: 48px;
+    height: 64px;
+    background: var(--card-bg);
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    cursor: pointer;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    user-select: none;
+}
+
+.tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+}
+
+.tile:active {
+    transform: scale(0.95);
+}
+
+.tile.selected {
+    background-color: #fff9e6;
+    border: 2px solid var(--accent-light);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.tile.hint {
+    animation: pulse-hint 1.5s infinite;
+}
+
+@keyframes pulse-hint {
+    0% { box-shadow: 0 0 0 0 rgba(212, 163, 115, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(212, 163, 115, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 163, 115, 0); }
+}
+
+.tile.matched {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.5);
+}
+
+/* 푸터 버튼 */
+footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 0;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.main-btn {
+    flex: 2;
+    background-color: var(--accent-color);
+    color: white;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(139, 94, 52, 0.3);
+}
+
+.sub-btn {
+    flex: 1;
+    background-color: white;
+    color: var(--accent-color);
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+button:active {
+    transform: translateY(2px);
+}
+
+/* 오버레이 */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s;
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.msg-box {
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 80%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.msg-box h2 {
+    font-family: 'Gowun Batang', serif;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+}
+
+.msg-box p {
+    margin-bottom: 25px;
+    color: #666;
+}
+
+#restart-btn {
+    background: var(--accent-color);
+    color: white;
+    padding: 12px 30px;
+    font-size: 1rem;
+}
+
+/* 연결선 시각화 */
+.connection-line {
+    position: absolute;
+    background-color: var(--accent-light);
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0.6;
+}
