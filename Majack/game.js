@@ -39,8 +39,8 @@ class MahjongSolitaire {
         // 보드의 실제 차지 범위 및 기하학적 중심 계산
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         this.layout.forEach(([z, y, x]) => {
-            const tx = x * 24;
-            const ty = y * 32;
+            const tx = x * 27;
+            const ty = y * 37;
             minX = Math.min(minX, tx - 30);
             maxX = Math.max(maxX, tx + 30);
             minY = Math.min(minY, ty - 40);
@@ -217,9 +217,9 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // 보드 중앙점(50%, 50%)을 기준으로 일정한 픽셀 간격 배치
-        const xOffset = x * 24; 
-        const yOffset = y * 32; 
+        // 타일 크기(54x74)에 딱 맞춰 겹치지 않게 배치 간격 조정 (x: 27, y: 37)
+        const xOffset = x * 27; 
+        const yOffset = y * 37; 
         
         el.style.left = `50%`; 
         el.style.top = `50%`; 
