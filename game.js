@@ -189,19 +189,17 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // CSS에서 tile 너비는 9vw, 높이는 12.5vw로 설정되어 있음
+        // 타일 너비를 10.6vw로 확대. 최대 레이아웃 폭이 약 94.5vw에 달하도록 조정.
         // 1 단위(unit)는 타일 너비/높이의 정확히 절반.
-        // 따라서 화면 크기와 무관하게 항상 동일한 퍼즐 맞물림을 보장함.
-        const xOffsetVw = x * 4.5; // (9vw / 2)
-        const yOffsetVw = y * 6;   // (12vw / 2 == 약간 상하 겹침 유도)
-        const zShiftX = z * 0.4;
-        const zShiftY = z * 0.6;
+        const xOffsetVw = x * 5.3; // 10.6vw / 2
+        const yOffsetVw = y * 7.0; // 약간 겹치게 상하 맞물림
+        const zShiftX = z * 0.5;
+        const zShiftY = z * 0.8;
         
         el.style.left = `50%`; 
         el.style.top = `50%`; 
         el.style.zIndex = z * 10 + 100;
         
-        // 기기 크기에 상관없이 동일한 비율로 보드를 렌더링
         el.style.transform = `translate(calc(-50% + ${xOffsetVw}vw - ${zShiftX}vw), calc(-50% + ${yOffsetVw}vw - ${zShiftY}vw))`;
 
         el.innerHTML = this.getFaceHTML(tileData);
