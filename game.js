@@ -196,20 +196,28 @@ class MahjongSolitaire {
         if (data.type === 'pin') {
             let dots = '';
             for(let i=0; i<data.val; i++) {
-                // 특정 숫자 색상 분리
                 let clr = (data.val===1 || (data.val===7 && i>3) || (data.val===9 && i>5) ? 'red' : (data.val===8 && i%2===1 ? 'green' : ''));
                 dots += `<div class="dot ${clr}"></div>`;
             }
-            return `<div class="face"><div class="mj-pin layout-${data.val}">${dots}</div></div>`;
+            // 가독성을 위해 구석에 작은 숫자 추가
+            return `<div class="face">
+                <div class="mj-pin layout-${data.val}">${dots}</div>
+                <div class="mj-guide-num">${data.val}</div>
+            </div>`;
         }
         if (data.type === 'sou') {
-            if (data.val === 1) return `<div class="face"><div class="mj-sou layout-1">🦚</div></div>`;
+            let symbol = data.val === 1 ? '🦚' : '';
             let sticks = '';
-            for(let i=0; i<data.val; i++) {
-                let clr = (data.val===8 && i<4) || (data.val===6 && i<3) ? 'red' : 'green';
-                sticks += `<div class="stick ${clr}"></div>`;
+            if (data.val !== 1) {
+                for(let i=0; i<data.val; i++) {
+                    let clr = (data.val===8 && i<4) || (data.val===6 && i<3) ? 'red' : 'green';
+                    sticks += `<div class="stick ${clr}"></div>`;
+                }
             }
-            return `<div class="face"><div class="mj-sou layout-${data.val}">${sticks}</div></div>`;
+            return `<div class="face">
+                <div class="mj-sou layout-${data.val}">${data.val === 1 ? symbol : sticks}</div>
+                <div class="mj-guide-num">${data.val}</div>
+            </div>`;
         }
         if (data.type === 'wind') {
             return `<div class="face"><div class="mj-font wind-black">${data.val}</div></div>`;
@@ -345,9 +353,8 @@ class MahjongSolitaire {
             }
 
             if (!hasMoves) {
-                // 움직일 수 있는 패가 없으면 자동으로 셔플
+                // 움직일 수 있는 패가 없으면 자동으로 셔플 (알림 없이 즉시 실행하여 흐름 유지)
                 setTimeout(() => {
-                    alert("움직일 수 있는 패가 없어 패를 다시 섞습니다! 😊");
                     this.shuffleBoard();
                 }, 500);
             }

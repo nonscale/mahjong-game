@@ -208,6 +208,18 @@ h1 {
     font-size: 2.5rem;
     text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
 }
+
+/* 가독성 가이드 숫자 */
+.mj-guide-num {
+    position: absolute;
+    bottom: 4px;
+    right: 6px;
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.4);
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+}
+
 .dragon-red { color: #a91e1e; }
 .dragon-green { color: #1e6b3c; }
 .dragon-blue { color: #1d4e89; border: 3px double #1d4e89; border-radius: 4px; padding: 0 4px; font-size: 2.2rem; }
