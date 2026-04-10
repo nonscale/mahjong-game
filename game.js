@@ -143,65 +143,86 @@ class MahjongSolitaire {
         }
         this.shuffle(pool);
 
-        this.layout.forEach((pos, i) => {
-            const [z, y, x] = pos;
-            const tileData = pool[i];
-            const tile = this.createTile(x, y, z, tileData);
-            this.grid.push(tile);
-            this.boardElement.appendChild(tile.element);
-        });
-
-        this.updateBoardScale(); // 배치가 끝난 후 자동으로 화면에 맞춤
-        this.updateState();
-    }
-
-    /**
-     * 🧩 공학적 요구사항 충족: 지능형 스케일링 & 피팅 엔진
-     * 1. Logical Viewbox 정의
-     * 2. Safe Area 기반 Contain 전략
-     * 3. 자동 패딩(10px) 관리
-     * 4. 반응형 리사이즈
-     */
-    /**
-     * 🧩 업계 표준: 고정 크기 보드 + CSS Transform 스켈링 (Zoom 전략)
-     */
-    updateBoardScale() {
-        if (this.grid.length === 0) return;
-
-        // 1. 고정된 논리적 바운딩 박스 계산 (px 단위)
+        // 1. 논리적 바운딩 박스 계산 및 보드 크기 강제 설정 (Flexbox 정렬용)
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         const rootStyles = getComputedStyle(document.documentElement);
         const unitW = parseFloat(rootStyles.getPropertyValue('--tile-w-half')) || 40;
         const unitH = parseFloat(rootStyles.getPropertyValue('--tile-h-half')) || 55;
 
-        this.grid.forEach(tile => {
-            if (tile.isMatched) return;
-            const lx = tile.x * unitW;
-            const ly = tile.y * unitH;
+        this.layout.forEach(pos => {
+            const [z, y, x] = pos;
+            const lx = x * unitW;
+            const ly = y * unitH;
             minX = Math.min(minX, lx - unitW);
             maxX = Math.max(maxX, lx + unitW);
             minY = Math.min(minY, ly - unitH);
             maxY = Math.max(maxY, ly + unitH);
         });
 
-        const logicalWidth = maxX - minX;
-        const logicalHeight = maxY - minY;
-        const centerX = (minX + maxX) / 2;
-        const centerY = (minY + maxY) / 2;
+        const boardWidth = maxX - minX;
+        const boardHeight = maxY - minY;
+        
+        // 보드에 실제 물리적 크기 주입 (Flexbox가 중앙을 잡을 수 있게 함)
+        this.boardElement.style.width = `${boardWidth}px`;
+        this.boardElement.style.height = `${boardHeight}px`;
 
-        // 2. 중단 컨테이너(game-container) 영역 추출
+        // 2. 타일 생성 및 배치 (보드 내부 0, 0 기준 정규화)
+        this.layout.forEach((pos, i) => {
+            const [z, y, x] = pos;
+            const tileData = pool[i];
+            
+            // 보드 내부 좌표로 변환 (minX, minY 만큼 시프트하여 보드 안에 쏙 들어가게 함)
+            const lx = (x * unitW) - minX;
+            const ly = (y * unitH) - minY;
+            
+            const tile = this.createTileNormalized(lx, ly, z, tileData);
+            this.grid.push(tile);
+            this.boardElement.appendChild(tile.element);
+        });
+
+        this.updateBoardScale(); 
+        this.updateState();
+    }
+
+    createTileNormalized(lx, ly, z, tileData) {
+        const el = document.createElement('div');
+        el.className = 'tile';
+        el.style.zIndex = z * 10 + 100;
+        
+        // 3D 효과를 위한 z-shift
+        const szx = z * 5; 
+        const szy = z * 8;
+        
+        // 보드(0,0) 기준 절대 픽셀 배치
+        el.style.transform = `translate(${lx - szx}px, ${ly - szy}px)`;
+
+        el.innerHTML = this.getFaceHTML(tileData);
+        el.dataset.baseTransform = el.style.transform;
+        
+        const tile = { x: lx, y: ly, z, value: JSON.stringify(tileData), data: tileData, element: el, isMatched: false };
+        el.onclick = () => this.handleTileClick(tile);
+        return tile;
+    }
+
+    /**
+     * 🧩 업계 표준: 고정 크기 보드 + CSS Transform 스켈링 (Zoom 전략)
+     */
+    updateBoardScale() {
+        if (this.grid.length === 0) return;
+        
         const container = document.getElementById('game-container');
         const cw = container.clientWidth;
         const ch = container.clientHeight;
+        const bw = parseFloat(this.boardElement.style.width) || 1;
+        const bh = parseFloat(this.boardElement.style.height) || 1;
 
         if (cw <= 0 || ch <= 0) return;
 
-        // 3. 스케일 비율 계산 (공식: Math.min(CW/BW, CH/BH) * 0.95)
-        const scale = Math.min(cw / logicalWidth, ch / logicalHeight) * 0.95;
+        // 업계 표준: 설정된 보드 크기 대비 컨테이너 비율 산출 (여백 5% 확보)
+        const scale = Math.min(cw / bw, ch / bh) * 0.95;
         
-        // 4. Transform 적용: 논리적 중앙점을 (0,0)으로 옮긴 후 스케일링
-        // 이 방식은 타일의 개별 좌표 로직을 건드리지 않고 전체 판을 줌 조절합니다.
-        this.boardElement.style.transform = `scale(${scale}) translate(${-centerX}px, ${-centerY}px)`;
+        // 보드판 자체가 이미 Flexbox에 의해 중앙에 있으므로 스케일만 적용
+        this.boardElement.style.transform = `scale(${scale})`;
         this.boardElement.style.transformOrigin = "center center";
     }
     

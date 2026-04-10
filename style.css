@@ -81,11 +81,11 @@ h1 {
 }
 
 #board {
-    position: relative; /* 컨테이너 내에서 scale 조절용 */
-    width: 0;
-    height: 0;
-    /* JS에서 scaleFactor와 함께 translate(-50%, -50%)를 적용하여 
-       정중앙에서부터 타일이 뻗어나가도록 함 */
+    position: relative; 
+    /* 자바스크립트에서 실제 계산된 가로/세로 픽셀 크기를 주입함 */
+    width: auto;
+    height: auto;
+    transform-origin: center center;
 }
 
 /* 프리미엄 입체 마작 패 (자동 반응형 꽉찬 크기 조절) */
