@@ -189,20 +189,23 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // 보드 중앙점(50%, 50%)을 기준으로 일정한 픽셀 간격 배치
-        const xOffset = x * 24; 
-        const yOffset = y * 32; 
+        // CSS에서 tile 너비는 9vw, 높이는 12.5vw로 설정되어 있음
+        // 1 단위(unit)는 타일 너비/높이의 정확히 절반.
+        // 따라서 화면 크기와 무관하게 항상 동일한 퍼즐 맞물림을 보장함.
+        const xOffsetVw = x * 4.5; // (9vw / 2)
+        const yOffsetVw = y * 6;   // (12vw / 2 == 약간 상하 겹침 유도)
+        const zShiftX = z * 0.4;
+        const zShiftY = z * 0.6;
         
         el.style.left = `50%`; 
         el.style.top = `50%`; 
         el.style.zIndex = z * 10 + 100;
         
-        // x, y 위치 기반 + z 높이 오프셋(두께감)을 통합하여 계산
-        el.style.transform = `translate(calc(-50% + ${xOffset}px - ${z * 4}px), calc(-50% + ${yOffset}px - ${z * 6}px))`;
+        // 기기 크기에 상관없이 동일한 비율로 보드를 렌더링
+        el.style.transform = `translate(calc(-50% + ${xOffsetVw}vw - ${zShiftX}vw), calc(-50% + ${yOffsetVw}vw - ${zShiftY}vw))`;
 
         el.innerHTML = this.getFaceHTML(tileData);
         
-        // 타일 클릭 시 들썩임 방지를 위해 트랜스폼 값을 저장해 둡니다.
         el.dataset.baseTransform = el.style.transform;
         
         const tile = { x, y, z, value: JSON.stringify(tileData), data: tileData, element: el, isMatched: false };
