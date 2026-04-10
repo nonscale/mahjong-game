@@ -214,9 +214,9 @@ h1 {
 .dragon-blue { color: #1d4e89; border: 3px double #1d4e89; border-radius: 4px; padding: 0 4px; font-size: 2.2rem; }
 .wind-black { color: #1a1a1a; }
 
-/* 선택 및 가림 처리 */
+/* 선택 및 가림 처리 (비활성 타일을 더 짙고 어둡게) */
 .tile.blocked {
-    filter: brightness(0.6) sepia(0.2); 
+    filter: brightness(0.35) contrast(0.8) grayscale(0.3); 
     cursor: default;
 }
 
