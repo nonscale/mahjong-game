@@ -189,17 +189,19 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // 타일 크기 확대에 맞춘 좌표 스케일링 (12.5vw 기반)
-        const xOffsetVw = x * 6.25; 
-        const yOffsetVw = y * 8.2;  
-        const zShiftX = z * 0.6;
-        const zShiftY = z * 0.9;
+        // vmin 단위를 사용하여 화면의 가로/세로 중 짧은 쪽에 맞춰 자동으로 스케일링
+        // xOffset은 타일 너비(10vmin)의 절반인 5vmin
+        // yOffset은 타일 높이(13.5vmin)의 거의 절반인 6.7vmin (약간의 상하 겹침)
+        const xOffset = x * 5.0; 
+        const yOffset = y * 6.7;  
+        const zShiftX = z * 0.5;
+        const zShiftY = z * 0.7;
         
         el.style.left = `50%`; 
         el.style.top = `50%`; 
         el.style.zIndex = z * 10 + 100;
         
-        el.style.transform = `translate(calc(-50% + ${xOffsetVw}vw - ${zShiftX}vw), calc(-50% + ${yOffsetVw}vw - ${zShiftY}vw))`;
+        el.style.transform = `translate(calc(-50% + ${xOffset}vmin - ${zShiftX}vmin), calc(-50% + ${yOffset}vmin - ${zShiftY}vmin))`;
 
         el.innerHTML = this.getFaceHTML(tileData);
         
