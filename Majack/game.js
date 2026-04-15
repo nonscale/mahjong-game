@@ -3,6 +3,12 @@ class MahjongSolitaire {
         this.boardElement = document.getElementById('board');
         this.remainingElement = document.getElementById('remaining-count');
         this.timerElement = document.getElementById('timer');
+        this.scoreElement = document.getElementById('score');
+        this.comboElement = document.getElementById('combo');
+        
+        this.score = 0;
+        this.combo = 0;
+        this.lastMatchTime = 0;
         
         // 브라우저 렌더링 무손실 마작 아트웍 데이터
         this.tiles = [];
@@ -147,6 +153,35 @@ class MahjongSolitaire {
         return coords;
     }
 
+    // 6. 성곽 레이아웃 (새로운 고난도)
+    getCastleLayout() {
+        let coords = [];
+        for (let z = 0; z < 4; z++) {
+            for (let y = -6 + z; y <= 6 - z; y += 2) {
+                for (let x = -6 + z; x <= 6 - z; x += 2) {
+                    if (Math.abs(x) === 6 - z || Math.abs(y) === 6 - z) {
+                        coords.push([z, y, x]);
+                    }
+                }
+            }
+        }
+        return coords;
+    }
+
+    // 7. 나비 레이아웃 (화려한 문양)
+    getButterflyLayout() {
+        let coords = [];
+        for (let y = -4; y <= 4; y += 2) {
+            for (let x = -6; x <= 6; x += 2) {
+                if (Math.abs(x) > Math.abs(y) || x === 0) {
+                    coords.push([0, y, x]);
+                    if (Math.abs(x) < 4) coords.push([1, y, x]);
+                }
+            }
+        }
+        return coords;
+    }
+
     init() {
         document.getElementById('reset-btn').onclick = () => this.startNewGame();
         document.getElementById('shuffle-btn').onclick = () => this.shuffleBoard();
@@ -168,7 +203,9 @@ class MahjongSolitaire {
             this.getPyramidLayout(),
             this.getArenaLayout(),
             this.getCrossLayout(),
-            this.getDiamondLayout()
+            this.getDiamondLayout(),
+            this.getCastleLayout(),
+            this.getButterflyLayout()
         ];
         this.layout = layouts[Math.floor(Math.random() * layouts.length)];
         
@@ -192,6 +229,19 @@ class MahjongSolitaire {
 
         this.scaleBoard();
         this.updateState();
+        this.updateStats();
+    }
+
+    updateStats() {
+        this.scoreElement.textContent = this.score;
+        this.comboElement.textContent = this.combo;
+        
+        if (this.combo > 1) {
+            this.comboElement.parentElement.classList.add('combo-active');
+            setTimeout(() => {
+                this.comboElement.parentElement.classList.remove('combo-active');
+            }, 500);
+        }
     }
 
     startTimer() {
@@ -310,6 +360,20 @@ class MahjongSolitaire {
 
     matchTiles(t1, t2) {
         this.isProcessing = true;
+        
+        // 점수 및 콤보 계산
+        const now = Date.now();
+        if (now - this.lastMatchTime < 3000) { // 3초 이내 매칭 시 콤보
+            this.combo++;
+        } else {
+            this.combo = 1;
+        }
+        this.lastMatchTime = now;
+        
+        const points = 100 * this.combo;
+        this.score += points;
+        this.updateStats();
+
         t1.element.classList.add('matched');
         t2.element.classList.add('matched');
         t1.isMatched = true;
@@ -319,7 +383,7 @@ class MahjongSolitaire {
             this.selectedTile = null;
             this.isProcessing = false;
             this.updateState();
-        }, 300);
+        }, 500); // 애니메이션 시간 확보
     }
 
     updateState() {
@@ -361,7 +425,7 @@ class MahjongSolitaire {
             // 모든 패를 맞추면 잠시 후 자동으로 새 게임 시작
             setTimeout(() => {
                 if (this.timerInterval) clearInterval(this.timerInterval);
-                alert(`축하합니다! ${this.timerElement.textContent} 만에 모든 패를 맞추셨습니다! 🎉`);
+                alert(`축하합니다! 🎉\n\n기록: ${this.timerElement.textContent}\n최종 점수: ${this.score}점\n\n단수가 정말 높으시군요!`);
                 this.startNewGame();
             }, 500);
         }
