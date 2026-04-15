@@ -26,6 +26,7 @@ class MahjongSolitaire {
         this.grid = [];
         this.selectedTile = null;
         this.timer = 0;
+        this.timerInterval = null;
         this.isProcessing = false;
 
         this.init();
@@ -39,8 +40,8 @@ class MahjongSolitaire {
         // 보드의 실제 차지 범위 및 기하학적 중심 계산
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         this.layout.forEach(([z, y, x]) => {
-            const tx = x * 27;
-            const ty = y * 37;
+            const tx = x * 28; // 간격 보정 (기존 27 -> 28)
+            const ty = y * 38; // 간격 보정 (기존 37 -> 38)
             minX = Math.min(minX, tx - 30);
             maxX = Math.max(maxX, tx + 30);
             minY = Math.min(minY, ty - 40);
@@ -153,7 +154,11 @@ class MahjongSolitaire {
     }
 
     startNewGame() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
         this.timer = 0;
+        this.timerElement.textContent = '00:00';
+        this.startTimer();
+        
         this.selectedTile = null;
         this.boardElement.innerHTML = '';
         this.grid = [];
@@ -188,6 +193,15 @@ class MahjongSolitaire {
         this.scaleBoard();
         this.updateState();
     }
+
+    startTimer() {
+        this.timerInterval = setInterval(() => {
+            this.timer++;
+            const mins = Math.floor(this.timer / 60).toString().padStart(2, '0');
+            const secs = (this.timer % 60).toString().padStart(2, '0');
+            this.timerElement.textContent = `${mins}:${secs}`;
+        }, 1000);
+    }
     
     getFaceHTML(data) {
         const basePath = 'riichi-mahjong-tiles-master/Regular';
@@ -217,9 +231,9 @@ class MahjongSolitaire {
         const el = document.createElement('div');
         el.className = 'tile';
         
-        // 타일 크기(54x74)에 딱 맞춰 겹치지 않게 배치 간격 조정 (x: 27, y: 37)
-        const xOffset = x * 27; 
-        const yOffset = y * 37; 
+        // 타일 크기(54x74)에 약간의 여유(1~2px)를 두어 겹치지 않게 배치 간격 조정 (x: 28, y: 38)
+        const xOffset = x * 28; 
+        const yOffset = y * 38; 
         
         el.style.left = `50%`; 
         el.style.top = `50%`; 
@@ -346,7 +360,8 @@ class MahjongSolitaire {
         } else if (remaining === 0) {
             // 모든 패를 맞추면 잠시 후 자동으로 새 게임 시작
             setTimeout(() => {
-                alert("축하합니다! 모든 패를 맞추셨습니다! 🎉");
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                alert(`축하합니다! ${this.timerElement.textContent} 만에 모든 패를 맞추셨습니다! 🎉`);
                 this.startNewGame();
             }, 500);
         }
