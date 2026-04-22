@@ -270,18 +270,18 @@ h1 {
 }
 
 .tile.selected {
-    background: #fffbe6;
-    border-color: var(--gold);
-    /* 제자리에서 빛만 발산하도록 box-shadow를 두껍게 구성하고 transform은 덮어쓰지 않음.
-       두께감 섀도우(회색계열)를 골드 계열로 바꿔서 빛이 나는 효과 */
+    background: #ffd32a; /* 더 진하고 명확한 노란색/금색 */
+    border: 2px solid #ff9f1a;
+    /* 제자리에서 강력한 빛을 발산하도록 그림자 강화 */
     box-shadow: 
         -1px 1px 0px #fff,
-        -1px 2px 0px #f0e2b6,
-        -2px 3px 0px #ebd699,
-        -2px 4px 0px var(--gold),
-        0px 0px 15px rgba(243, 156, 18, 0.8),
-        -4px 8px 12px rgba(243, 156, 18, 0.5);
+        -1px 2px 0px #e58e26,
+        -2px 3px 0px #f39c12,
+        -2px 4px 0px #d35400,
+        0px 0px 20px rgba(255, 159, 26, 0.9),
+        0px 0px 40px rgba(255, 159, 26, 0.4);
     z-index: 1000 !important; 
+    transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px) - 10px)) !important; /* 약간 들리는 효과 추가 */
 }
 .tile.selected .face {
     /* 기존 scale(1.05)이 글자만 키워서 이질감을 줄 수 있으므로 제거하거나 최소화 */

@@ -290,7 +290,11 @@ class MahjongSolitaire {
         el.style.zIndex = z * 10 + 100;
         
         // x, y 위치 기반 + z 높이 오프셋(두께감)을 통합하여 계산
-        el.style.transform = `translate(calc(-50% + ${xOffset}px - ${z * 4}px), calc(-50% + ${yOffset}px - ${z * 6}px))`;
+        const tx = xOffset - z * 4;
+        const ty = yOffset - z * 6;
+        el.style.setProperty('--tx', `${tx}px`);
+        el.style.setProperty('--ty', `${ty}px`);
+        el.style.transform = `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))`;
 
         el.innerHTML = this.getFaceHTML(tileData);
         
@@ -325,12 +329,16 @@ class MahjongSolitaire {
             this.selectedTile = tile;
             tile.element.classList.add('selected');
         } else {
+            tile.element.classList.add('selected'); // 두 번째 패도 선택 표시
             if (this.selectedTile.value === tile.value) {
                 this.matchTiles(this.selectedTile, tile);
             } else {
-                this.selectedTile.element.classList.remove('selected');
-                this.selectedTile = tile;
-                tile.element.classList.add('selected');
+                const prevTile = this.selectedTile;
+                setTimeout(() => {
+                    prevTile.element.classList.remove('selected');
+                    tile.element.classList.remove('selected');
+                }, 300);
+                this.selectedTile = null;
             }
         }
     }
