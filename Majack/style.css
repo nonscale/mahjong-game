@@ -270,18 +270,18 @@ h1 {
 }
 
 .tile.selected {
-    background: #ffd32a; /* 더 진하고 명확한 노란색/금색 */
-    border: 2px solid #ff9f1a;
-    /* 제자리에서 강력한 빛을 발산하도록 그림자 강화 */
+    background: #ff4757; /* 강렬한 붉은색 */
+    border: 2px solid #ff1f1f;
+    /* 붉은색의 강력한 발광 효과로 시인성 확보 */
     box-shadow: 
         -1px 1px 0px #fff,
-        -1px 2px 0px #e58e26,
-        -2px 3px 0px #f39c12,
-        -2px 4px 0px #d35400,
-        0px 0px 20px rgba(255, 159, 26, 0.9),
-        0px 0px 40px rgba(255, 159, 26, 0.4);
+        -1px 2px 0px #c23616,
+        -2px 3px 0px #962100,
+        -2px 4px 0px #5e1500,
+        0px 0px 25px rgba(255, 71, 87, 1),
+        0px 0px 50px rgba(255, 71, 87, 0.6);
     z-index: 1000 !important; 
-    transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px) - 10px)) !important; /* 약간 들리는 효과 추가 */
+    transform: translate(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px) - 15px)) !important; /* 들림 효과를 15px로 더 강화 */
 }
 .tile.selected .face {
     /* 기존 scale(1.05)이 글자만 키워서 이질감을 줄 수 있으므로 제거하거나 최소화 */
