@@ -285,7 +285,7 @@ h1 {
 }
 .tile.selected .face {
     /* 기존 scale(1.05)이 글자만 키워서 이질감을 줄 수 있으므로 제거하거나 최소화 */
-    filter: drop-shadow(0 0 2px var(--gold));
+    filter: drop-shadow(0 0 2px #ff4757);
 }
 
 .tile.matched {
